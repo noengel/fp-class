@@ -128,15 +128,52 @@ insertElem x l = l
 -- Написать функцию, которая разбивает список на два подсписка: элементы из начала списка,
 -- совпадающие с первым элементом, и все остальные элементы, например:
 -- [1,1,1,2,3,1] -> ([1,1,1], [2,3,1]).
-
+split :: Eq a => [a] -> ([a], [a])
+split (x:xs) = split' ([x], xs)
+    where
+        split' ((x:xs), (y:ys))
+            | x == y = split' (x:xs ++ [y], ys)
+            | otherwise = (x:xs, y:ys)
+			
 --3
 -- Даны типовые аннотации функций. Попытайтесь догадаться, что они делают, и напишите их
 -- рекурсивные реализации (если вы можете предложить несколько вариантов, реализуйте все):
--- а) [a] -> Int -> a
+-- а) [a] -> Int -> a 
+-- доступ по индексу
+getElem :: [a] -> Int -> a
+getElem (x:xs) 0 = x 
+getElem (x:xs) i = getElem xs (i-1)
+
 -- б) Eq a => [a] -> a -> Bool
+-- проверка вхождения элемента
+isContains :: Eq a => [a] -> a -> Bool
+isContains [] a = False
+isContains (x:xs) a
+    | a == x = True
+    | otherwise = isContains xs a
+	
 -- в) [a] -> Int -> [a]
+-- удалить элемент по индексу
+delElem :: [a] -> Int -> [a]
+delElem (x:xs) 0 = xs
+delElem (x:xs) i = x : delElem xs (i-1)
+
 -- г) a -> Int -> [a]
+-- список из k штук элементов a
+aRepeat :: a -> Int -> [a]
+aRepeat a 0 = [a]
+aRepeat a n = a : aRepeat a (n-1)
+
 -- д) [a] -> [a] -> [a]
+-- склеить два списка
+listConcat :: [a] -> [a] -> [a]
+listConcat [] [] = []
+listConcat [] (y:ys) = y : listConcat [] ys
+listConcat (x:xs) y = x : listConcat xs y
+
 -- е) Eq a => [a] -> [[a]]
+--
 -- ж) [a] -> [(Int, a)]
+--
 -- з) Eq a => [a] -> [a]
+--
