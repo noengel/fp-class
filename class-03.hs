@@ -19,13 +19,54 @@
 f11a :: Integral a => [a] -> [a]
 f11a = map (\x -> x*2) 
 
+f11b :: Integral a => [a] -> [a]
+f11b = map func
+	where 
+		func x
+			| even x = x*2
+			| otherwise = x
+
+f11c :: Integral a => [a] -> [a]
+f11c = map func
+	where
+		func x
+			| odd x = 0
+			| otherwise = x
+			
+f11d :: Integral a => a -> [a] -> [a]
+f11d k = filter (\x -> x <= k)
+
+f11e :: Integral a => [a] -> [a]
+f11e = filter (\x -> x < 0)
+
+f11f :: Integral a => [a] -> [a]
+f11f = filter (\x -> x < 0 || odd x)
+
 {-
  1.2 Дан список декартовых координат точек на плоскости (пар вещественных чисел).
      Преобразовать его следующим образом:
   a) отфильтровать список так, чтобы в нём остались точки из заданной координатной четверти;
   b) преобразовать декартовы координаты в полярные.
 -}
-
+f12a :: (Fractional a, Ord a, Integral b) => b -> [(a,a)] -> [(a,a)]
+f12a k = filter (\x -> func x == k)
+	where
+		func (x, y)
+			| x > 0 && y > 0 = 1
+			| x < 0 && y > 0 = 2
+			| x < 0 && y < 0 = 3
+			| x > 0 && y < 0 = 4
+			| otherwise = 0
+			
+f12b :: (Eq a, Floating a, Ord a) => [(a,a)] -> [(a,a)] 
+f12b = map (\(x,y) -> (sqrt(x*x + y*y), func x y))
+	where
+		func x y 
+			| y == 0 && x < 0 = pi
+			| y == 0 && x >= 0 = 0
+			| x == 0 && y > 0 = pi / 2
+			| x == 0 && y <= 0 = 3 * pi / 2
+			| otherwise = atan(x/y)
 {-
  1.3 Дан список слов.
   a) Преобразовать все слова к верхнему регистру.
