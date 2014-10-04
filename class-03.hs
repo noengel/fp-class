@@ -157,3 +157,20 @@ test_f3d = f3d [1..10] 4 2 == [[1,2,3,4],[3,4,5,6],[5,6,7,8],[7,8,9,10],[9,10]]
     называется элемент, больший своих соседей.
  e) Дан список. Продублировать все его элементы.
 -}
+
+f4a :: String -> Int
+f4a s = length (filter (isDigit.head) (f3a s))
+
+f4b :: (Int -> Bool) -> Int -> Int -> Int
+f4b p a b = sum (filter p (dropWhile (<=a) (takeWhile (<=b) fibonachi)))
+  where
+    fibonachi = 0 : 1 : zipWith (+) fibonachi (tail fibonachi)
+
+f4c :: Int -> String -> String
+f4c n = (map head).(take n).reverse.sortBy (\x y -> compare (length x) (length y)).group.sort
+
+f4d :: [Int] -> [Int]
+f4d = undefined
+
+f4e :: [a] -> [a]
+f4e = concat.map (\x -> [x,x])
