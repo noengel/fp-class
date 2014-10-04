@@ -1,3 +1,6 @@
+import Data.Char
+import Data.List
+
 {-
 Явная рекурсия в решениях хотя и допускается, но не приветствуется. Старайтесь обходиться стандартными
 функциями, используя при этом создание функций «на лету». Пытайтесь максимально упростить уже написанные
@@ -73,9 +76,14 @@ f12b = map (\(x,y) -> (sqrt(x*x + y*y), func x y))
   b) Извлечь из него подсписок слов заданной длины.
   c) Извлечь из него подсписок слов, начинающихся с заданной буквы.
 -}
-
 f13a :: [String] -> [String]
-f13a = map undefined
+f13a = map $ map toUpper
+
+f13b :: Int -> [String] -> [String]
+f13b l = filter ((==l).length) 
+
+f13c :: Char -> [String] -> [String]
+f13c c = filter ((==c).head) 
 
 {-
 2. Формирование числовых последовательностей (iterate).
@@ -86,8 +94,20 @@ f13a = map undefined
  e) Список строк, представляющих n-значные двоичные числа.
 -}
 
-nats :: [Integer]
-nats = iterate undefined 0
+f2a :: [Integer]
+f2a = iterate (+1) 0
+
+f2b :: [Integer]
+f2b = iterate (+2) 0
+
+f2c :: [Double]
+f2c = iterate (\x -> (1 + x)/2) 1
+
+f2d :: [Char]
+f2d = take 26 $ iterate (chr.(+1).ord) 'a'
+
+f2e :: Int -> [String]
+f2e = undefined
 
 {-
 3. Группировка списков.
@@ -101,8 +121,26 @@ nats = iterate undefined 0
   e) Дан список. Определить длину самого длинного подсписка, содержащего подряд идущие одинаковые элементы.
 -}
 
+f3a :: [Char] -> [[Char]]
+f3a = groupBy (\x y -> ((isDigit x) && (isDigit y)) || ((not $ isDigit x) && (not $ isDigit y)))
+
+f3b :: [(Double, Double)] -> [[(Double, Double)]]
+f3b = groupBy func
+  where
+    func (x1,y1) (x2,y2)
+		| (x1 > 0) && (y1 > 0) = (x2 > 0) && (y2 > 0) 
+		| (x1 > 0) && (y1 < 0) = (x2 > 0) && (y2 < 0)
+		| (x1 < 0) && (y1 > 0) = (x2 < 0) && (y2 > 0)
+		| (x1 < 0) && (y1 < 0) = (x2 < 0) && (y2 < 0)
+		| otherwise = False
+
+f3c :: [a] -> Int -> [[a]]
+f3c [] _ = []
+f3c l n = [take n l] ++ (f3c (drop n l) n)
+
 f3d :: [a] -> Int -> Int -> [[a]]
-f3d xs n m = undefined
+f3d [] _ _ = []
+f3d l n m = [take n l] ++ (f3d (drop m l) n m)
 
 -- Должно быть True
 test_f3d = f3d [1..10] 4 2 == [[1,2,3,4],[3,4,5,6],[5,6,7,8],[7,8,9,10],[9,10]]
