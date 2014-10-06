@@ -24,6 +24,38 @@
      функции должно быть значение, возвращаемое по умолчанию).
 -}
 
+f1a :: [Int] -> Int
+f1a = foldl (\x y -> x + if even y then y else 0) 0
+f1a_test1 = f1a [1,2,3,4,5,6] == 12
+f1a_test2 = f1a [3,5,7,9] == 0
+f1a_test3 = f1a [3,10,(-10),1,6,19] == 6
+
+f1b :: [Double] -> (Double, Double)
+f1b = foldl (\(s, p) x -> (s+x, p*x)) (0,1)
+f1b_test1 = f1b [1,2,3,4,5] == (15,120)
+f1b_test2 = f1b [0.0, 4.4, 6.9] == (11.3,0)
+f1b_test3 = f1b [3.0,3.0,3.0] == (9.0,27.0)
+
+f1c :: [Double] -> Double
+f1c l = (snd func) / (fst func)
+	where
+		func = foldl (\(k,a) x -> (k+1, a+x)) (0,0) l
+f1c_test1 = f1c [1,2,3,4,5] == 3
+f1c_test2 = f1c [4.2,7.5,3.6,4.9] == 5.05
+f1c_test3 = f1c [0,0,0] == 0
+
+f1d :: Ord a => [a] -> a
+f1d = foldl1 min 
+f1d_test1 = f1d [1,2,3,4,5] == 1
+f1d_test2 = f1d [7,2,(-1),4] == (-2)
+f1d_test3 = f1d [0,0,0] == 0
+
+f1e :: Int -> [Int] -> Int
+f1e def l = fst (foldl (\(y,flag) x -> if odd x then (if flag then (min x y, True) else (x, True)) else (y, flag)) (def, False) l)
+f1e_test1 = f1e 0 [1,2,3,4,5] == 1
+f1e_test2 = f1e 0 [8,4,2,(-4)] == (-1)
+f1e_test3 = f1e 1 [0,0,0] == 1
+
 {-
  2. Свёртки, формирующие списки
   a) Сформировать список, содержащий каждый второй элемент исходного.
@@ -42,6 +74,81 @@
      заданной функции двух аргументов к соответствующим элементам исходных списков.
 -}
 
+f2a :: [a] -> [a]
+f2a l = snd $ foldl (\(i,e) x -> if even i then (i+1, e ++ [x]) else (i+1, e)) (1,[]) l
+f2a_test1 = f2a [1,2,3,4,5] == [2,4]
+f2a_test2 = f2a [7,5,(-1),8] == [5,8]
+f2a_test3 = f2a [0,0,0] == [0]
+
+f2b :: Int -> [a] -> [a]
+f2b n l = snd $ foldl (\(i,e) x -> if (i <= n) then (i+1, e ++ [x]) else (i+1, e)) (1,[]) l
+f2b_test1 = f2b 2 [1,2,3,4,5] == [1,2]
+f2b_test2 = f2b 4 [7,5,(-1),8] == [7,5,(-1),8]
+f2b_test3 = f2b 1 [0,0,0] == [3]
+
+f2c :: Int -> [a] -> [a]
+f2c n l = snd $ foldr (\x (i,e) -> if (i <= n) then (i+1, x:e) else (i+1, e)) (1,[]) l
+f2c_test1 = f2c 3 [1,2,3,4,5] == [3,4,5]
+f2c_test2 = f2c 4 [7,5,(-1),8] == [7,5,(-1),8]
+f2c_test3 = f2c 1 [0,0,0] == [0]
+
+f2d :: Ord a => [a] -> [a]
+f2d [] = []
+f2d (x:xs) = snd $ foldl (\(x,e) y -> if (y > x) then (y, e ++ [y]) else (y, e)) (x,[]) xs
+f2d_test1 = f2d [1..5] == [2..5]
+f2d_test2 = f2d [7,5,(-1),8] == [8]
+f2d_test3 = f2d [0,0,0] == []
+
+f2e :: Ord a => [a] -> [a]
+f2e [] = []
+f2e [x] = [x]
+f2e (x:y:[]) = if (x < y) then [x] else (if (y < x) then [y] else [])
+f2e (x0:x1:xs) = func $ foldl (\((x, y), e) z -> if (y < x) && (y < z) then ((y, z), e ++ [y]) else ((y, z), e)) ((x0, x1), pred) xs
+  where 
+    pred = if (x0 < x1) then [x0] else []
+    func ((x, y), l) = if (y < x) then l ++ [y] else l
+f2e_test1 = f2e [1,2,3,4,5] == [1]
+f2e_test2 = f2e [7,5,(-1),8] == [(-1)]
+f2e_test3 = f2e [0,0,0] == []
+
+f2f :: String -> [String]
+f2f xs = snd $ foldr (\x (str, e) -> if (x == ' ') then (if (str == "") then ("", e) else ("", str:e)) else (x:str, e)) ("", []) (' ':xs)
+f2f_test1 = f2f "Hello,   world!" == ["Hello,", "world!"]
+f2f_test2 = f2f "1111   222  5555" == ["1111", "222", "5555"]
+f2f_test3 = f2f " begin  end   " == ["begin", "end"]
+
+f2g :: Int -> [a] -> [[a]]
+f2g n = (\(x, (y, _)) -> x ++ [y]) . foldl (\(str, (l, r)) e -> if (r == 0) then (str ++ [l], ([e], n-1)) else (str, (l ++ [e], r-1))) ([], ([], n))
+f2g_test1 = f2g 3 [1,2,3,4,5,6,7,8] == [[1,2,3],[4,5,6],[7,8]]
+f2g_test2 = f2g 2 "ababab" == ["ab","ab","ab"]
+f2g_test3 = f2g 1 [1,2,3] == [[1],[2],[3]] 
+
+f2h :: Int -> Int -> [a] -> [[a]]
+f2h n k = (\(x, (y, _)) -> x ++ [y]) . foldl (\(str, (l, r)) e -> if (r == 0) then (str ++ [l], (f2c k l ++ [e], n-k-1)) else (str, (l ++ [e], r-1))) ([], ([], n))
+f2h_test1 = f2h 3 1 [1,2,3,4,5,6,7,8] == [[1,2,3],[3,4,5],[5,6,7],[7,8]]
+f2h_test2 = f2h 3 2 "ababab" == ["aba","bab","aba","bab"]
+f2h_test3 = f2h 1 0 [1,2,3] == [[1],[2],[3]] 
+
+f2k :: (a -> Bool) -> [a] -> [a]
+f2k pred l = snd $ foldl (\(flag, str) x -> if flag then (if pred x then (flag, str ++ [x]) else (False, str)) else (False, str)) (True, []) l
+f2k_test1 = f2k even [1,2,1,4,1,3,2,5] == [2]
+f2k_test2 = f2k (=='a') "aaajahuuga" == "aaa"
+f2k_test3 = f2k odd [2,4,5,6,7,8] == [5]
+
+f2l :: Int -> [a] -> [a]
+f2l n = foldr (\x str -> replicate n x ++ str) [] 
+f2l_test1 = f2l 2 [1..5] == [1,1,2,2,3,3,4,4,5,5]
+f2l_test2 = f2l 3 "why" == "wwwhhhyyy"
+f2l_test3 = f2l 4 [1,0] == [1,1,1,1,0,0,0,0]
+
+f2m = undefined
+
+f2n :: (a -> a -> b) -> [a] -> [a] -> [b]
+f2n pred l1 l2 = snd $ foldl (\((z:zs), e) x -> (zs, e ++ [(pred x z)])) (l2, []) l1
+f2n_test1 = f2n (+) [1,2,3] [4,5,6] == [5,7,9]
+f2n_test2 = f2n (*) [1,2,3] [4,5,6] == [4,10,18]
+f2n_test3 = f2n mod [10,9] [2,2] == [0,1]
+
 {-
  3. Использование свёртки как носителя рекурсии (для запуска свёртки можно использовать список типа [1..n]).
   a) Найти сумму чисел от a до b.
@@ -51,6 +158,41 @@
      n слагаемых).
   e) Проверить, является ли заданное целое число простым.
 -}
+
+f3a :: Int -> Int -> Int
+f3a a b = foldl (+) 0 [a..b]
+f3a_test1 = f3a 1 5 == 15
+f3a_test2 = f3a 0 1 == 1
+f3a_test3 = f3a (-10) 10 == 0
+
+--  b) Найти сумму факториалов чисел от a до b (повторные вычисления факториалов не допускаются).
+f3b :: Int -> Int -> Int
+f3b a b = foldl (+) 0 (scanl (*) func [a+1..b])
+  where
+    func = foldl (*) 1 [2..a]
+f3b_test1 = f3b 1 4 == 33
+f3b_test2 = f3b 3 5 == 150
+f3b_test3 = f3b 2 6 == 872
+
+--  с) Сформировать список из первых n чисел Фибоначчи.
+f3c :: Int -> [Int]
+f3c 1 = [0]
+f3c 2 = [0,1]
+f3c n = snd $ foldl (\((x, y), e) _ -> ((y, x+y), e ++ [x+y])) ((0, 1), [0,1]) [3..n]
+f3c_test1 = f3c 10 == [0, 1, 1, 2, 3, 5, 8, 13, 21, 34] 
+f3c_test2 = f3c 1 == [0] 
+f3c_test3 = f3c 3 == [0, 1, 1] 
+
+f3d = undefined
+
+f3e :: Int -> Bool
+f3e 0 = False
+f3e 1 = False
+f3e 2 = True
+f3e n = foldl (\flag x -> if n `mod` x == 0 then False else flag) True [2..n-1]
+f3e_test1 = f3e 113 == True
+f3e_test2 = f3e 76 == False
+f3e_test3 = f3e 251 == True
 
 {-
  4. Решить задачу о поиске пути с максимальной суммой в треугольнике (см. лекцию 3) при условии,
