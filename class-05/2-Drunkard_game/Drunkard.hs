@@ -7,16 +7,25 @@ module Drunkard where
   учитывая, что всего в колоде 52 карты.
 -}
 
-data Suit
+data Suit = Spades | Clubs | Diamonds | Hearts
+  deriving (Show, Eq)
 
-data Value
+data Value = Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Jack | Queen | King | Ace
+  deriving (Show, Eq, Ord)
 
 data Card = Card Value Suit
+  deriving (Show, Eq)
+
+value :: Card -> Value
+value (Card v _) = v
+
+suit :: Card -> Suit
+suit (Card _ s) = s
 
 -- 2. Определить функцию, проверяющую, что две переданные ей карты одной масти.
 
 sameSuit :: Card -> Card -> Bool
-sameSuit = undefined
+sameSuit c1 c2 = suit c1 == suit c2
 
 {-
   3. Определить функцию, проверяющую, что переданная ей первой карта старше второй
@@ -25,7 +34,7 @@ sameSuit = undefined
 -}
 
 beats :: Card -> Card -> Ordering
-c1 `beats` c2 = undefined
+c1 `beats` c2 = compare (value c1) (value c2)
 
 {-
   4. Определить функцию, которая по паре списков карт возвращает новую пару списков карт
@@ -38,7 +47,12 @@ c1 `beats` c2 = undefined
 -}
 
 game_round :: ([Card], [Card]) -> ([Card], [Card])
-game_round = undefined
+game_round (lx, ly) = func [] lx ly
+	where 
+		func l (x:lx) (y:ly)
+			| beats x y == GT = (lx ++ l ++ [x,y], ly)
+			| beats x y == LT = (lx, ly ++ l ++ [x,y])
+			| otherwise = func [x,y] lx ly
 
 {-
   5. Определить функцию, которая по паре списков возвращает количество раундов, необходимых
@@ -46,14 +60,29 @@ game_round = undefined
 -}
 
 data Winner = First | Second
+	deriving (Show, Eq)
 
 game :: ([Card], [Card]) -> (Winner, Int)
-game = undefined
+game (lx, ly) = func 0 (lx, ly)
+	where
+		func n ([], _) = (Second, n)
+		func n (_, []) = (First, n)
+		func n (c1, c2) = func (n+1) (game_round (c1, c2))
 
 {-
   6. Приведите здесь результаты как минимум пяти запусков функции game (в каждом списке
   изначально должно быть не менее 10 карт).
 -}
+
+game_test1 = game ([(Card Two Spades),(Card Three Spades),(Card Three Clubs),(Card Jack Clubs),(Card Two Clubs),(Card Six Diamonds),(Card Ace Hearts),(Card Ten Clubs),(Card Seven Spades),(Card Eight Spades)], [(Card Two Diamonds),(Card Three Hearts),(Card Ace Diamonds),(Card King Hearts),(Card Two Hearts),(Card Queen Clubs),(Card Ace Spades),(Card Ten Diamonds),(Card Eight Clubs),(Card Nine Diamonds)]) == (Second, 5)
+
+game_test2 = game ([(Card Two Spades),(Card Three Spades),(Card Four Spades),(Card Five Spades),(Card Six Spades),(Card Seven Spades),(Card Eight Spades),(Card Nine Spades),(Card Ten Spades),(Card Jack Spades)], [(Card Two Clubs),(Card Three Clubs),(Card Four Clubs),(Card Five Clubs),(Card Six Clubs),(Card Seven Clubs),(Card Eight Clubs),(Card Nine Clubs),(Card Ten Clubs),(Card Ten Diamonds)]) == (First, 1)
+
+game_test3 = game ([(Card Two Diamonds),(Card Three Hearts),(Card Ace Diamonds),(Card King Hearts),(Card Two Hearts),(Card Queen Clubs),(Card Ace Spades),(Card Ten Diamonds),(Card Eight Clubs),(Card Nine Diamonds)], [(Card Two Spades),(Card Three Spades),(Card Three Clubs),(Card Jack Clubs),(Card Two Clubs),(Card Six Diamonds),(Card Ace Hearts),(Card Ten Clubs),(Card Seven Spades),(Card Eight Spades)]) == (First, 5)
+
+game_test4 = game ([(Card Two Spades),(Card Three Spades),(Card Four Spades),(Card Five Spades),(Card Six Spades),(Card Seven Spades),(Card Eight Spades),(Card Nine Spades),(Card Ten Spades),(Card Jack Spades)], [(Card Three Clubs),(Card Four Clubs),(Card Five Clubs),(Card Six Clubs),(Card Seven Clubs),(Card Eight Clubs),(Card Nine Clubs),(Card Ten Clubs),(Card Ten Diamonds), (Card Queen Clubs)]) == (Second, 9)
+
+game_test5 = game ([(Card Four Diamonds),(Card Four Spades),(Card Five Spades),(Card Six Spades),(Card Seven Spades),(Card Eight Spades),(Card Nine Spades),(Card Ten Spades),(Card Jack Spades), (Card Queen Spades)], [(Card Two Clubs),(Card Three Clubs),(Card Six Clubs),(Card Seven Clubs),(Card Eight Clubs),(Card Nine Clubs),(Card Ten Clubs),(Card Jack Diamonds),(Card Queen Clubs),(Card Ace Clubs)]) == (Second, 14)
 
 {-
   7 (необязательное упражнение). Реализуйте версию функции game, которая помимо результатов
