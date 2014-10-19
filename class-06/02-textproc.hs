@@ -21,19 +21,20 @@ import Data.Char
 case' args
 	| read (head args) == 1 = do
 		f1 $ args!!1
-	| read (head args) == 2 = 
+	| read (head args) == 2 = do
 		f2 (args!!1) (args!!2) (args!!3)
 	| read (head args) == 3 = do
 		f3 $ args!!1
-	| read (head args) == 4 = undefined
+	| read (head args) == 4 = do
+		f4 (args!!1) (args!!2)
 	| read (head args) == 5 = undefined
 	
-f1 :: String -> IO()
+f1 :: FilePath -> IO()
 f1 fname = do
 	file <- readFile fname
 	print $ foldl (\acc x -> if x == '\n' then acc + 1 else acc) 0 file
 	
-f2 :: String -> String -> String -> IO()
+f2 :: FilePath -> String -> String -> IO()
 f2 fname wh s = do
 	file <- readFile fname
 	if wh == "head" then do
@@ -44,10 +45,16 @@ f2 fname wh s = do
 	writeFile fname tmpfile
 	removeFile "tmp.txt"
 	
-f3 :: String -> IO()
+f3 :: FilePath -> IO()
 f3 fname = do
 	file <- readFile fname
-	print $ map toUpper file
+	putStrLn $ map toUpper file
+	
+f4 :: FilePath -> FilePath -> IO ()
+f4 fname1 fname2 = do
+  file1 <- readFile fname1
+  file2 <- readFile fname2
+  writeFile "merge.txt" $ unlines (zipWith (\x y -> x ++ " " ++ y) (lines file1) (lines file2))
 		
 main = do
 	args <- getArgs
