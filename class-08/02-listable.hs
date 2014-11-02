@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeSynonymInstances,FlexibleInstances #-}
 {-
    Определите класс типов Listable с двумя функциями:
    toList :: a -> [a]
@@ -15,8 +16,8 @@ class Listable a where
 -}
 
 instance Listable String where
-    toList = words
-    fromList = unwords
+    toList s = words s
+    fromList s = unwords s
 
 
 instance Listable Integer where
