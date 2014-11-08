@@ -1,4 +1,7 @@
 import System.Environment
+import Data.Functor
+import Data.Maybe
+import System.Random
 
 {-
   Напишите функцию reduce, принимающую один целочисленный аргумент a и возвращающую 0,
@@ -7,7 +10,10 @@ import System.Environment
 -}
 
 reduce :: Integral a => a -> a
-reduce = undefined
+reduce a
+    | a `mod` 3 == 0 = 0
+    | odd a = a^2
+    | otherwise = a^3
 
 {-
   Напишите функцию, применяющую функцию reduce заданное количество раз к значению в контексте,
@@ -15,7 +21,7 @@ reduce = undefined
 -}
 
 reduceNF :: (Functor f, Integral a) => Int -> f a -> f a
-reduceNF = undefined
+reduceNF n fa = foldl (\acc _ -> fmap reduce acc) fa [1..n]
 
 {-
   Реализуйте следующие функции-преобразователи произвольным, но, желательно, осмысленным и
@@ -23,13 +29,19 @@ reduceNF = undefined
 -}
 
 toList :: Integral a => [(a, a)]  -> [a]
-toList = undefined
+toList = foldr (\(x,y) acc -> x : y : acc) []
 
 toMaybe :: Integral a => [(a, a)]  -> Maybe a
-toMaybe = undefined
+toMaybe [] = Nothing
+toMaybe [(n,x)] = Just x
+toMaybe ((n,x):xs) = let (resN, resX) = foldl (\(n1,x1) (n2,x2) -> if (n1>n2) then (n1,x2) else (n2,x1)) (n,x) xs
+                        in Just resX
 
 toEither :: Integral a => [(a, a)]  -> Either String a
-toEither = undefined
+toEither [] = Left "Пусто"
+toEither [(n,x)] = Right n
+toEither [(n,x):xs] = let (resN, resX) = foldl (\(n1,x1) (n2,x2) -> if (n1>n2) then (n1,x2) else (n2,x1)) (n,x) xs
+                        in Right resX
 
 -- воспользуйтесь в этой функции случайными числами
 toIO :: Integral a => [(a, a)]  -> IO a
@@ -50,13 +62,13 @@ parseArgs = undefined
 readData :: FilePath -> IO [(Int, Int)]
 readData = undefined
 
-main = do
+{-main = do
   (fname, n) <- parseArgs `fmap` getArgs
   ps <- readData fname
   undefined
   print $ reduceNF n (toEither ps)
   reduceNF n (toIO ps) >>= print
-
+-}
 {-
   Подготовьте несколько тестовых файлов, демонстрирующих особенности различных контекстов.
   Скопируйте сюда результаты вызова программы на этих файлах.
