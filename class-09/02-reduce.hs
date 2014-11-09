@@ -1,5 +1,4 @@
 import System.Environment
-import Data.Functor
 import Data.Maybe
 import System.Random
 
@@ -10,7 +9,7 @@ import System.Random
 -}
 
 reduce :: Integral a => a -> a
-reduce a
+reduce a 
     | a `mod` 3 == 0 = 0
     | odd a = a^2
     | otherwise = a^3
@@ -29,23 +28,24 @@ reduceNF n fa = foldl (\acc _ -> fmap reduce acc) fa [1..n]
 -}
 
 toList :: Integral a => [(a, a)]  -> [a]
-toList = foldr (\(x,y) acc -> x : y : acc) []
+toList = foldr (\(x,y) acc -> (x * y) : acc) []
 
 toMaybe :: Integral a => [(a, a)]  -> Maybe a
 toMaybe [] = Nothing
 toMaybe [(n,x)] = Just x
-toMaybe ((n,x):xs) = let (resN, resX) = foldl (\(n1,x1) (n2,x2) -> if (n1>n2) then (n1,x2) else (n2,x1)) (n,x) xs
-                        in Just resX
+toMaybe xs = Just (minimum $ toList xs)
 
 toEither :: Integral a => [(a, a)]  -> Either String a
-toEither [] = Left "Пусто"
-toEither [(n,x)] = Right n
-toEither [(n,x):xs] = let (resN, resX) = foldl (\(n1,x1) (n2,x2) -> if (n1>n2) then (n1,x2) else (n2,x1)) (n,x) xs
-                        in Right resX
+toEither [] = Left "Empty list"
+toEither [(n,x)] = Right x
+toEither xs = Right (minimum $ toList xs)
 
 -- воспользуйтесь в этой функции случайными числами
-toIO :: Integral a => [(a, a)]  -> IO a
-toIO = undefined
+toIO :: (Random a, Integral a) => [(a, a)]  -> IO a
+toIO xs = do
+    gen <- newStdGen
+    let x = fst $ randomR (1, 1000) gen
+    return $ max x (minimum $ toList xs)
 
 {-
   В параметрах командной строки задано имя текстового файла, в каждой строке
@@ -57,19 +57,31 @@ toIO = undefined
 -}
 
 parseArgs :: [String] -> (FilePath, Int)
-parseArgs = undefined
+parseArgs str = (head str, read $ last str)
 
 readData :: FilePath -> IO [(Int, Int)]
-readData = undefined
+readData fname = do
+    file <- readFile fname
+    return $ foldr (\x acc -> (parse x) : acc) [] $ lines file 
+    where
+        parse x = let l = words x in (read $ head l, read $ last l)
 
-{-main = do
-  (fname, n) <- parseArgs `fmap` getArgs
-  ps <- readData fname
-  undefined
-  print $ reduceNF n (toEither ps)
-  reduceNF n (toIO ps) >>= print
--}
+main = do
+    (fname, n) <- parseArgs `fmap` getArgs
+    ps <- readData fname
+    print $ reduceNF n (toList ps)
+    print $ reduceNF n (toMaybe ps)
+    print $ reduceNF n (toEither ps)
+    reduceNF n (toIO ps) >>= print
+
 {-
   Подготовьте несколько тестовых файлов, демонстрирующих особенности различных контекстов.
   Скопируйте сюда результаты вызова программы на этих файлах.
+ 
+    :main 02.txt 0
+    [16668,480,48256,0,-256,-46912,3136]
+    Just (-46912)
+    Right (-46912)
+    48256
+
 -}
