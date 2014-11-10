@@ -15,7 +15,10 @@ type SensorData = [SensorValue]
    значений, полученных от датчика. -}
 
 getData :: String -> SensorData
-getData =  map (\line -> let (x:xs) = (words line) in if (x=="-") then Nothing else Just (read x)) (lines s)
+getData =  map toMaybe . lines
+    where
+        toMaybe "-" = Nothing
+        toMaybe x = Just (read x :: Int)
 
 {- Напишите функцию, группирующую данные по суткам. -}
 
