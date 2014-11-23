@@ -1,0 +1,3 @@
+summand=0
+division=10000
+multiplier=1
