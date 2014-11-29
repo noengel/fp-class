@@ -11,8 +11,11 @@
 import Control.Monad
 import Control.Monad.Trans
 import Control.Monad.Trans.Maybe
-
+import Control.Monad.Trans.Reader
+import Control.Monad.Trans.Writer
 import Data.Char
+import Data.Maybe
+import System.Environment 
 
 isValid :: String -> Bool
 isValid s = length s >= 8 && 
