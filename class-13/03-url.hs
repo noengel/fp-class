@@ -13,20 +13,49 @@ import Control.Monad
    компоненты могут отсутствовать.
 -}
 
+data Scheme     = FTP | HTTP | HTTPS | Unk String
+                    deriving Show
+                    
+type Login      = String
+type Password   = String
+type Host       = String
+type Port       = String
+type Path       = String
+type Params     = String
+type Anchor     = String
 
-data Scheme = FTP | HTTP | HTTPS | Unk String
-              deriving Show
-type Server = String
-type Path = String
-data URL = URL Scheme Server Path
-           deriving Show
+data URL        = URL Scheme (Login, Password) Host Port Path Params Anchor
+                    deriving Show
 
 scheme = (string "https" >> return HTTPS) <|>
          (string "http" >> return HTTP) <|>
          (string "ftp" >> return FTP) <|>
          Unk `liftM` lowers
 
-url = URL <$>
-      scheme <*>
-      (string "://" >> many1 (sat (/='/'))) <*>
-      many (sat $ const True)
+auth = do
+    login <- many1 (sat (/= ':'))
+    char ':'
+    password <- many1 (sat (/= '@'))
+    char '@'
+    return (login, password)
+
+host = many1 (sat (\x -> x /= ':' && x /= '/'))
+
+port = char ':' >> many1 (sat (\x -> x /= '/' && x /= '?' && x /= '#'))
+
+path = char '/' >> many1 (sat (\x -> x /= '?' && x /= '#'))
+
+params = char '?' >> many1 (sat (/= '#'))
+
+anchor = char '#' >> many (sat $ const True)
+
+url = URL <$> 
+    scheme <*> 
+    (string "://" >> optional ("", "") auth) <*> 
+    host <*> 
+    optional "" port <*> 
+    optional "" path <*> 
+    optional "" params <*> 
+    optional "" anchor
+      
+test_parse = parse url "https://admin:12345@www.internet.com:80/Russia.php?params#anchor"

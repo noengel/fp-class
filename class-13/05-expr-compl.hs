@@ -12,7 +12,7 @@ import Control.Monad
    проанализировать).
 -}
 
-data Expr = Con Int | Bin Op Expr Expr
+data Expr = Con Int | Num Float | Complex (Float, Float) | Bin Op Expr Expr
   deriving Show
 data Op = Plus | Minus | Mul | Div
   deriving Show
@@ -24,6 +24,31 @@ factor ::= nat | '(' expr ')'
 addop  ::= '+' | '-'
 mulop  ::= '*' | '/'
 -}
+
+float :: Parser Float
+float = do (*) <$> minus <*>(positiveFloat <|> fromIntegral <$> natural)
+    where
+        positiveFloat = do
+            a <- natural
+            char '.'
+            b <- fraction
+            if a >= 0 then 
+                return $ fromIntegral a + b
+            else 
+                return $ fromIntegral a - b
+                
+        minus = (char '-' >> return (-1)) <|> return 1
+        
+fraction = do
+    num <- many digit
+    return $ foldr (\ d -> (/ fromIntegral 10) . (+ fromIntegral d)) 0 num
+    
+complex :: Parser (Float, Float)
+complex = bracket "(" ")" $ do
+    a <- token float
+    char ','
+    b <- token float
+    return $ (a, b)
 
 expr = token (term >>= rest addop term)
   where
@@ -38,6 +63,7 @@ expr = token (term >>= rest addop term)
     binop (s1, cons1) (s2, cons2) =
           (symbol s1 >> return cons1) <|>
           (symbol s2 >> return cons2)
-    constant = Con `liftM` natural
-
-
+    intConst = Con `liftM` natural
+    floatConst = Num `liftM` float
+    complexConst = Complex `liftM` complex
+    constant = complexConst <|> floatConst <|> intConst
